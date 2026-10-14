@@ -118,7 +118,7 @@
    ========================================== */
 .music-box {
   position: relative !important;
-  max-width: 300px;     
+  max-width: 500px;     
   width: 95%;           
   margin: 20px auto !important; 
   aspect-ratio: 16 / 9; 
@@ -164,6 +164,7 @@
     align-self: flex-start; 
     margin-top: 100px !important;
     margin-left: 40px !important; /* Możesz dostosować odległość od lewej na PC */
+      max-width: 200px;     
   }
 
   .tekstt {
