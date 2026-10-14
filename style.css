@@ -113,12 +113,28 @@
        animation: heartbeat 1.5s infinite alternate;
     }
 
+/* ==========================================
+   STYLE DOMYŚLNE - DLA TELEFONÓW (Zawsze na środku, jeden pod drugim)
+   ========================================== */
+.music-box {
+  position: relative !important;
+  max-width: 500px;     
+  width: 95%;           
+  margin: 20px auto !important; 
+  aspect-ratio: 16 / 9; 
+  border-radius: 20px;  
+  overflow: hidden;     
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: #000;     
+  outline: none;
+}
+
 .tekstt {
-  position: relative !important;   /* Wymusza układ pod filmem, a nie na nim */
+  position: relative !important;   
   max-width: 500px;
   width: 95%;
-  margin: 15px auto 25px auto !important; /* Robi równe odstępy od góry i dołu */
-  padding: 20px !important;        /* Większy padding, aby tekst miał przestrzeń */
+  margin: 15px auto 25px auto !important; 
+  padding: 20px !important;        
   background: rgba(255, 75, 110, 0.95);
   border-radius: 15px;
   color: white;
@@ -130,7 +146,6 @@
      1px  1px 0 rgb(0, 0, 0);
 }
 
-/* TĘ REGUŁĘ AKTUALIZUJEMY: */
 .tekstt h3 {
   color: white !important;
   text-shadow: none !important;
@@ -138,18 +153,28 @@
   font-size: 1.2rem;
 }
 
-/* Kontener główny teledysku (czarny prostokąt) */
-.music-box {
-  position: relative !important;   /* Wymusza naturalne układanie się w pionie */
-  max-width: 500px;     
-  width: 95%;           /* Szerokość idealnie dopasowana do ekranu telefonu */
-  margin: 20px auto !important; /* Centruje automatycznie w poziomie i robi odstępy */
-  aspect-ratio: 16 / 9; 
-  border-radius: 20px;  
-  overflow: hidden;     
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  background: #000;     
-  outline: none;
+
+/* ==========================================
+   STYLE DLA KOMPUTERÓW (Uruchomią się tylko na ekranach większych niż 992px)
+   ========================================== */
+@media (min-width: 992px) {
+  
+  .music-box {
+    position: absolute !important;
+    align-self: flex-start; 
+    margin-top: 100px !important;
+    margin-left: 40px !important; /* Możesz dostosować odległość od lewej na PC */
+  }
+
+  .tekstt {
+    text-align: center;
+    align-self: flex-start;  
+    padding-top: 30px;
+    margin-top: 450px !important; /* Twój stary margines spychający na PC */
+    position: absolute !important;  
+    margin-left: 40px !important; /* Trzyma kafelek w linii z muzyką na PC */
+  }
+  
 }
 
 /* Plik wideo zablokowany idealnie wewnątrz ramki */
