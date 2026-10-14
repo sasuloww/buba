@@ -118,8 +118,8 @@
    ========================================== */
 .music-box {
   position: relative !important;
-  max-width: 320px;     /* Zmniejszono z 500px na 320px - okienko będzie mniejsze i zgrabniejsze na telefonie */
-  width: 85%;           /* Procentowa szerokość na ekranie smartfona */
+  max-width: 500px;     
+  width: 95%;           
   margin: 20px auto !important; 
   aspect-ratio: 16 / 9; 
   border-radius: 20px;  
