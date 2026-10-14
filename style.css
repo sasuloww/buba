@@ -114,42 +114,41 @@
     }
 
 .tekstt {
-  text-align: center;
-  align-self: flex-start;  
-  padding-top: 30px;
-  margin-top: 450px;
-  position: absolute;  
+  position: relative !important;   /* Wymusza układ pod filmem, a nie na nim */
   max-width: 500px;
+  width: 95%;
+  margin: 15px auto 25px auto !important; /* Robi równe odstępy od góry i dołu */
+  padding: 20px !important;        /* Większy padding, aby tekst miał przestrzeń */
+  background: rgba(255, 75, 110, 0.95);
+  border-radius: 15px;
   color: white;
+  text-align: center;
   text-shadow: 
     -1px -1px 0 rgb(0, 0, 0),
      1px -1px 0 rgb(0, 0, 0),
     -1px  1px 0 rgb(0, 0, 0),
      1px  1px 0 rgb(0, 0, 0);
-  background: rgba(255, 75, 110, 0.95);
-  padding: 5px;
-  border-radius: 15px;
-  margin-bottom: 30px;
 }
 
 /* TĘ REGUŁĘ AKTUALIZUJEMY: */
-.tekstt h2 {
-  color: white;
-  text-shadow: none; /* Całkowicie wyłącza dziedziczenie czarnego obrysu */
+.tekstt h3 {
+  color: white !important;
+  text-shadow: none !important;
+  margin-bottom: 8px;
+  font-size: 1.2rem;
 }
 
 /* Kontener główny teledysku (czarny prostokąt) */
 .music-box {
-  position: absolute;
-  align-self: flex-start; 
-  max-width: 500px;     /* Szerokość okienka */
-  width: 90%;           /* Dopasowanie do ekranu telefonu */
-  margin-top: 100px;
-  aspect-ratio: 16 / 9; /* Zachowanie idealnych proporcji filmu kinowego */
-  border-radius: 20px;  /* Zaokrąglone rogi */
-  overflow: hidden;     /* Ucięcie wystającego filmu */
+  position: relative !important;   /* Wymusza naturalne układanie się w pionie */
+  max-width: 500px;     
+  width: 95%;           /* Szerokość idealnie dopasowana do ekranu telefonu */
+  margin: 20px auto !important; /* Centruje automatycznie w poziomie i robi odstępy */
+  aspect-ratio: 16 / 9; 
+  border-radius: 20px;  
+  overflow: hidden;     
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  background: #000;     /* Czarne tło przed załadowaniem filmu */
+  background: #000;     
   outline: none;
 }
 
