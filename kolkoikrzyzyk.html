@@ -22,7 +22,6 @@
     <div class="game-box">
       <h2>Kółko i Krzyżyk na Żywo! 🕹️</h2>
       
-      <!-- Panel wyboru gracza -->
       <div class="role-select-box">
         <p style="font-weight: bold; margin-bottom: 8px; color: #6a6a6a;">Kim dzisiaj grasz?</p>
         <button id="btn-O" class="role-btn" onclick="wybierzRole('❤️')">Graj jako ❤️</button>
@@ -48,18 +47,14 @@
   </div>
 
   <script>
-    // =========================================================================
-    // ⚠️ TUTAJ WKLEJ LINK DO SWOJEJ BAZY Z FIREBASE (pamiętaj o cudzysłowie!)
-    // =========================================================================
-const firebaseConfig = {
-  databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/" 
-};
+    // Twoja prawidłowa konfiguracja bazy danych z Firebase
+    const firebaseConfig = {
+      databaseURL: "https://firebasedatabase.app" 
+    };
     
-    // Inicjalizacja połączenia z Google Cloud
     firebase.initializeApp(firebaseConfig);
     const baza = firebase.database().ref("stan_gry");
 
-    // Zmienne lokalne urządzenia
     let mojaRola = ""; 
     let turaGracza = "❤️"; 
     let planszawPamieci = ["", "", "", "", "", "", "", "", ""];
@@ -76,7 +71,7 @@ const firebaseConfig = {
       odswiezNapisTury();
     }
 
-    // Nasłuchiwanie bazy danych na żywo (Gdy drugie urządzenie kliknie, ten kod od razu to wyczuje)
+    // Nasłuchiwanie zmian w bazie na żywo
     baza.on("value", (snapshot) => {
       const dane = snapshot.val();
       if (dane) {
@@ -84,14 +79,12 @@ const firebaseConfig = {
         turaGracza = dane.tura || "❤️";
         czyGraAktywna = dane.aktywna !== false;
         
-        // Przerysowanie znaków na ekranie
         for (let i = 0; i < 9; i++) {
           document.getElementById(`c${i}`).innerText = planszawPamieci[i];
         }
         
         sprawdzWynikGryBezZmiany();
       } else {
-        // Jeśli baza jest pusta, zakłada nowy start
         wyczyscBaze();
       }
     });
@@ -101,7 +94,6 @@ const firebaseConfig = {
       if (planszawPamieci[indeks] !== "" || !czyGraAktywna) return;
       if (turaGracza !== mojaRola) { alert("Cierpliwości, teraz ruch drugiego gracza! 🌸"); return; }
 
-      // Zapisujemy ruch lokalnie i wysyłamy do serwera Google
       planszawPamieci[indeks] = mojaRola;
       let nastepnaTura = mojaRola === "❤️" ? "💋" : "❤️";
 
@@ -112,18 +104,21 @@ const firebaseConfig = {
       });
     }
 
+    // Bezpieczne, pancerne sprawdzanie wyników bez pętli i błędów tablicy
     function sprawdzWynikGryBezZmiany() {
       let b = planszawPamieci;
       let ktosWygral = false;
       let zwyciezca = "";
 
-      // Sztywne warunki wygranej
+      // Poziomo
       if (b[0] !== "" && b[0] === b[1] && b[0] === b[2]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[3] !== "" && b[3] === b[4] && b[3] === b[5]) { ktosWygral = true; zwyciezca = b[3]; }
       if (b[6] !== "" && b[6] === b[7] && b[6] === b[8]) { ktosWygral = true; zwyciezca = b[6]; }
+      // Pionowo
       if (b[0] !== "" && b[0] === b[3] && b[0] === b[6]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[1] !== "" && b[1] === b[4] && b[1] === b[7]) { ktosWygral = true; zwyciezca = b[1]; }
       if (b[2] !== "" && b[2] === b[5] && b[2] === b[8]) { ktosWygral = true; zwyciezca = b[2]; }
+      // Skosy
       if (b[0] !== "" && b[0] === b[4] && b[0] === b[8]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) { ktosWygral = true; zwyciezca = b[2]; }
 
@@ -163,7 +158,7 @@ const firebaseConfig = {
       });
     }
 
-    // Latające serduszka w tle
+    // Latające serduszka
     function createHeart() {
       const heart = document.createElement('div'); heart.classList.add('heart-bg'); heart.innerText = '❤️';
       heart.style.left = Math.random() * 100 + 'vw'; heart.style.animationDuration = Math.random() * 4 + 6 + 's'; heart.style.fontSize = Math.random() * 15 + 15 + 'px';
