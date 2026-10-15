@@ -3,123 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel='stylesheet' href='kik.css'>
-
-  <title>Nasza Strefa Gier 🎮</title>
-  </head>
+  <title>Nasza Strefa Gier Multiplayer 🎮</title>
+  
+  <!-- Pobieranie oficjalnej biblioteki Google Firebase -->
+  <script src="https://gstatic.com"></script>
+  <script src="https://gstatic.com"></script>
+</head>
 <body>
 
-  <!-- Pasek górny z przyciskiem powrotu -->
   <div class="top-bar">
     <a href="index.html" class="back-btn">◀ Wróć</a>
-    <span>Strefa Gier</span> ❤️
+    <span>Nasza Gra Online 🌐</span> ❤️
   </div>
 
   <div class="main-container">
-    <!-- Panel z grą -->
     <div class="game-box">
-      <h2>Kółko i Krzyżyk wersja inna xD🎮</h2>
-      <p id="game-status">Tura: ❤️</p>
+      <h2>Kółko i Krzyżyk na Żywo! 🕹️</h2>
       
-      <div class="game-board">
-        <div class="cell" onclick="makeMove(this, 0)"></div>
-        <div class="cell" onclick="makeMove(this, 1)"></div>
-        <div class="cell" onclick="makeMove(this, 2)"></div>
-        <div class="cell" onclick="makeMove(this, 3)"></div>
-        <div class="cell" onclick="makeMove(this, 4)"></div>
-        <div class="cell" onclick="makeMove(this, 5)"></div>
-        <div class="cell" onclick="makeMove(this, 6)"></div>
-        <div class="cell" onclick="makeMove(this, 7)"></div>
-        <div class="cell" onclick="makeMove(this, 8)"></div>
+      <!-- Panel wyboru gracza -->
+      <div class="role-select-box">
+        <p style="font-weight: bold; margin-bottom: 8px; color: #6a6a6a;">Kim dzisiaj grasz?</p>
+        <button id="btn-O" class="role-btn" onclick="wybierzRole('❤️')">Graj jako ❤️</button>
+        <button id="btn-X" class="role-btn" onclick="wybierzRole('💋')">Graj jako 💋</button>
       </div>
 
-      <button class="reset-game-btn" onclick="resetGame()">Zagraj od nowa 🔄</button>
+      <p id="game-status">Wybierz symbol powyżej, aby zacząć...</p>
+      
+      <div class="game-board">
+        <div class="cell" id="c0" onclick="klikniecieKafelka(0)"></div>
+        <div class="cell" id="c1" onclick="klikniecieKafelka(1)"></div>
+        <div class="cell" id="c2" onclick="klikniecieKafelka(2)"></div>
+        <div class="cell" id="c3" onclick="klikniecieKafelka(3)"></div>
+        <div class="cell" id="c4" onclick="klikniecieKafelka(4)"></div>
+        <div class="cell" id="c5" onclick="klikniecieKafelka(5)"></div>
+        <div class="cell" id="c6" onclick="klikniecieKafelka(6)"></div>
+        <div class="cell" id="c7" onclick="klikniecieKafelka(7)"></div>
+        <div class="cell" id="c8" onclick="klikniecieKafelka(8)"></div>
+      </div>
+
+      <button class="reset-game-btn" onclick="wyczyscBaze()">Zresetuj planszę dla obojga 🔄</button>
     </div>
   </div>
 
   <script>
-    let board = ["", "", "", "", "", "", "", "", ""];
-    let currentPlayer = "❤️";
-    let gameActive = true;
+    // =========================================================================
+    // ⚠️ TUTAJ WKLEJ LINK DO SWOJEJ BAZY Z FIREBASE (pamiętaj o cudzysłowie!)
+    // =========================================================================
+const firebaseConfig = {
+  databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/" 
+};
+    
+    // Inicjalizacja połączenia z Google Cloud
+    firebase.initializeApp(firebaseConfig);
+    const baza = firebase.database().ref("stan_gry");
 
-    function makeMove(cell, index) {
-      // Jeśli pole jest już zajęte lub gra się skończyła – zablokuj
-      if (board[index] !== "" || !gameActive) return;
+    // Zmienne lokalne urządzenia
+    let mojaRola = ""; 
+    let turaGracza = "❤️"; 
+    let planszawPamieci = ["", "", "", "", "", "", "", "", ""];
+    let czyGraAktywna = true;
 
-      // Zapisz ruch i wstaw emotkę na planszę
-      board[index] = currentPlayer;
-      cell.innerText = currentPlayer;
+    function wybierzRole(symbol) {
+      mojaRola = symbol;
+      document.getElementById("btn-O").classList.remove("active");
+      document.getElementById("btn-X").classList.remove("active");
       
-      // Sprawdź wygraną/remis
-      checkGameResult();
+      if(symbol === "❤️") document.getElementById("btn-O").classList.add("active");
+      if(symbol === "💋") document.getElementById("btn-X").classList.add("active");
+      
+      odswiezNapisTury();
+    }
 
-      // WYMUSZONA ZMIANA GRACZA (Robiona natychmiast)
-      if (gameActive) {
-        if (currentPlayer === "❤️") {
-          currentPlayer = "💋";
-        } else {
-          currentPlayer = "❤️";
+    // Nasłuchiwanie bazy danych na żywo (Gdy drugie urządzenie kliknie, ten kod od razu to wyczuje)
+    baza.on("value", (snapshot) => {
+      const dane = snapshot.val();
+      if (dane) {
+        planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
+        turaGracza = dane.tura || "❤️";
+        czyGraAktywna = dane.aktywna !== false;
+        
+        // Przerysowanie znaków na ekranie
+        for (let i = 0; i < 9; i++) {
+          document.getElementById(`c${i}`).innerText = planszawPamieci[i];
         }
-        document.getElementById("game-status").innerText = "Tura: " + currentPlayer;
+        
+        sprawdzWynikGryBezZmiany();
+      } else {
+        // Jeśli baza jest pusta, zakłada nowy start
+        wyczyscBaze();
       }
-    }
+    });
 
-    function checkGameResult() {
-      let b = board; // Skrót dla łatwiejszego czytania
-      let roundWon = false;
+    function klikniecieKafelka(indeks) {
+      if (!mojaRola) { alert("Najpierw kliknij u góry przycisk, kim chcesz grać! 🥰"); return; }
+      if (planszawPamieci[indeks] !== "" || !czyGraAktywna) return;
+      if (turaGracza !== mojaRola) { alert("Cierpliwości, teraz ruch drugiego gracza! 🌸"); return; }
 
-      // 1. Sprawdzanie wierszy (poziomo)
-      if (b[0] !== "" && b[0] === b[1] && b[0] === b[2]) roundWon = true;
-      if (b[3] !== "" && b[3] === b[4] && b[3] === b[5]) roundWon = true;
-      if (b[6] !== "" && b[6] === b[7] && b[6] === b[8]) roundWon = true;
+      // Zapisujemy ruch lokalnie i wysyłamy do serwera Google
+      planszawPamieci[indeks] = mojaRola;
+      let nastepnaTura = mojaRola === "❤️" ? "💋" : "❤️";
 
-      // 2. Sprawdzanie kolumn (pionowo)
-      if (b[0] !== "" && b[0] === b[3] && b[0] === b[6]) roundWon = true;
-      if (b[1] !== "" && b[1] === b[4] && b[1] === b[7]) roundWon = true;
-      if (b[2] !== "" && b[2] === b[5] && b[2] === b[8]) roundWon = true;
-
-      // 3. Sprawdzanie skosów
-      if (b[0] !== "" && b[0] === b[4] && b[0] === b[8]) roundWon = true;
-      if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) roundWon = true;
-
-      if (roundWon) {
-        document.getElementById("game-status").innerText = "Wygrywa " + currentPlayer + "! 🎉👑";
-        gameActive = false;
-        return;
-      }
-
-      // Sprawdzanie remisu (czy plansza jest pełna)
-      if (!board.includes("")) {
-        document.getElementById("game-status").innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
-        gameActive = false;
-        return;
-      }
-    }
-
-    function resetGame() {
-      board = ["", "", "", "", "", "", "", "", ""];
-      currentPlayer = "❤️";
-      gameActive = true;
-      document.getElementById("game-status").innerText = "Tura: ❤️";
-      const cells = document.querySelectorAll(".cell");
-      cells.forEach(function(cell) {
-        cell.innerText = "";
+      baza.set({
+        plansza: planszawPamieci,
+        tura: nastepnaTura,
+        aktywna: czyGraAktywna
       });
     }
 
-    // Generowanie serduszek w tle
+    function sprawdzWynikGryBezZmiany() {
+      let b = planszawPamieci;
+      let ktosWygral = false;
+      let zwyciezca = "";
+
+      // Sztywne warunki wygranej
+      if (b[0] !== "" && b[0] === b[1] && b[0] === b[2]) { ktosWygral = true; zwyciezca = b[0]; }
+      if (b[3] !== "" && b[3] === b[4] && b[3] === b[5]) { ktosWygral = true; zwyciezca = b[3]; }
+      if (b[6] !== "" && b[6] === b[7] && b[6] === b[8]) { ktosWygral = true; zwyciezca = b[6]; }
+      if (b[0] !== "" && b[0] === b[3] && b[0] === b[6]) { ktosWygral = true; zwyciezca = b[0]; }
+      if (b[1] !== "" && b[1] === b[4] && b[1] === b[7]) { ktosWygral = true; zwyciezca = b[1]; }
+      if (b[2] !== "" && b[2] === b[5] && b[2] === b[8]) { ktosWygral = true; zwyciezca = b[2]; }
+      if (b[0] !== "" && b[0] === b[4] && b[0] === b[8]) { ktosWygral = true; zwyciezca = b[0]; }
+      if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) { ktosWygral = true; zwyciezca = b[2]; }
+
+      if (ktosWygral) {
+        document.getElementById("game-status").innerText = `Koniec! Wygrywa ${zwyciezca}! 🎉`;
+        if (czyGraAktywna) {
+          czyGraAktywna = false;
+          baza.update({ aktywna: false });
+          setTimeout(() => { alert(`Wygrywa ${zwyciezca}! Twoja nagroda to nieskończona ilość przytulasów! 💋❤️`); }, 100);
+        }
+        return;
+      }
+
+      if (!b.includes("")) {
+        document.getElementById("game-status").innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
+        czyGraAktywna = false;
+        return;
+      }
+
+      odswiezNapisTury();
+    }
+
+    function odswiezNapisTury() {
+      if (!czyGraAktywna) return;
+      if (mojaRola === turaGracza) {
+        document.getElementById("game-status").innerText = `Twoja tura (${mojaRola})! Twój ruch! 🔥`;
+      } else {
+        document.getElementById("game-status").innerText = `Oczekiwanie na ruch partnera (${turaGracza})... ⏳`;
+      }
+    }
+
+    function wyczyscBaze() {
+      baza.set({
+        plansza: ["", "", "", "", "", "", "", "", ""],
+        tura: "❤️",
+        aktywna: true
+      });
+    }
+
+    // Latające serduszka w tle
     function createHeart() {
-      const heart = document.createElement('div');
-      heart.classList.add('heart-bg');
-      heart.innerText = '❤️';
-      heart.style.left = Math.random() * 100 + 'vw';
-      heart.style.animationDuration = Math.random() * 4 + 6 + 's';
-      heart.style.fontSize = Math.random() * 15 + 15 + 'px';
-      document.body.appendChild(heart);
-      setTimeout(function() { heart.remove(); }, 10000);
+      const heart = document.createElement('div'); heart.classList.add('heart-bg'); heart.innerText = '❤️';
+      heart.style.left = Math.random() * 100 + 'vw'; heart.style.animationDuration = Math.random() * 4 + 6 + 's'; heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+      document.body.appendChild(heart); setTimeout(() => { heart.remove(); }, 10000);
     }
     setInterval(createHeart, 600);
   </script>
-
 </body>
 </html>
