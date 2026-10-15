@@ -46,68 +46,101 @@
     </div>
   </div>
 
-  <script>
-    // POPRAWIONE: Twój czysty i jedyny adres URL bazy danych z Firebase
+<script>
+    // Konfiguracja Twojej bazy danych z Firebase
     const firebaseConfig = {
-      databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/" 
+      databaseURL: "https://firebasedatabase.app" 
     };
+    
+    // Inicjalizacja Firebase w bezpiecznym bloku try-catch
+    let baza;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      baza = firebase.database().ref("stan_gry");
+    } catch (e) {
+      console.error("Błąd połączenia z Firebase, uruchamiam tryb awaryjny:", e);
+    }
 
-    // Inicjalizacja połączenia z Google Cloud
-    firebase.initializeApp(firebaseConfig);
-    const baza = firebase.database().ref("stan_gry");
-
-    // Zmienne lokalne urządzenia
+    // Zmienne lokalne (Działają zawsze, niezależnie od internetu)
     let mojaRola = ""; 
     let turaGracza = "❤️"; 
     let planszawPamieci = ["", "", "", "", "", "", "", "", ""];
     let czyGraAktywna = true;
 
+    // TA FUNKCJA DZIAŁA TERAZ W 100% LOKALNIE - Serwer jej nie zablokuje
     function wybierzRole(symbol) {
       mojaRola = symbol;
-      document.getElementById("btn-O").classList.remove("active");
-      document.getElementById("btn-X").classList.remove("active");
       
-      if(symbol === "❤️") document.getElementById("btn-O").classList.add("active");
-      if(symbol === "💋") document.getElementById("btn-X").classList.add("active");
+      const btnO = document.getElementById("btn-O");
+      const btnX = document.getElementById("btn-X");
+      
+      if (btnO) btnO.classList.remove("active");
+      if (btnX) btnX.classList.remove("active");
+      
+      if (symbol === "❤️" && btnO) btnO.classList.add("active");
+      if (symbol === "💋" && btnX) btnX.classList.add("active");
       
       odswiezNapisTury();
     }
 
-    // Nasłuchiwanie zmian w bazie na żywo
-    baza.on("value", (snapshot) => {
-      const dane = snapshot.val();
-      if (dane) {
-        planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
-        turaGracza = dane.tura || "❤️";
-        czyGraAktywna = dane.aktywna !== false;
-
-        // Przerysowanie znaków na ekranie
-        for (let i = 0; i < 9; i++) {
-          document.getElementById(`c${i}`).innerText = planszawPamieci[i];
+    // Bezpieczne nasłuchiwanie zmian w bazie na żywo
+    if (baza) {
+      baza.on("value", (snapshot) => {
+        try {
+          const dane = snapshot.val();
+          if (dane) {
+            planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
+            turaGracza = dane.tura || "❤️";
+            czyGraAktywna = dane.aktywna !== false;
+            
+            // Przerysowanie znaków na ekranie
+            for (let i = 0; i < 9; i++) {
+              const kafelek = document.getElementById(`c${i}`);
+              if (kafelek) kafelek.innerText = planszawPamieci[i];
+            }
+            
+            sprawdzWynikGryBezZmiany();
+          } else {
+            wyczyscBaze();
+          }
+        } catch (error) {
+          console.error("Błąd podczas odbierania ruchu:", error);
         }
-
-        sprawdzWynikGryBezZmiany();
-      } else {
-        wyczyscBaze();
-      }
-    });
-
-    function klikniecieKafelka(indeks) {
-      if (!mojaRola) { alert("Najpierw kliknij u góry przycisk, kim chcesz grać! 🥰"); return; }
-      if (planszawPamieci[indeks] !== "" || !czyGraAktywna) return;
-      if (turaGracza !== mojaRola) { alert("Cierpliwości, teraz ruch drugiego gracza! 🌸"); return; }
-
-      planszawPamieci[indeks] = mojaRola;
-      let nastepnaTura = mojaRola === "❤️" ? "💋" : "❤️";
-
-      baza.set({
-        plansza: planszawPamieci,
-        tura: nastepnaTura,
-        aktywna: czyGraAktywna
       });
     }
 
-    // Bezpieczne, pancerne sprawdzanie wyników
+    function klikniecieKafelka(indeks) {
+      if (!mojaRola) { 
+        alert("Najpierw kliknij u góry przycisk, kim chcesz grać! 🥰"); 
+        return; 
+      }
+      if (planszawPamieci[indeks] !== "" || !czyGraAktywna) return;
+      if (turaGracza !== mojaRola) { 
+        alert("Cierpliwości, teraz ruch drugiego gracza! 🌸"); 
+        return; 
+      }
+
+      // Wykonaj ruch lokalnie na ekranie (Zadziała natychmiast)
+      planszawPamieci[indeks] = mojaRola;
+      const kafelek = document.getElementById(`c${indeks}`);
+      if (kafelek) kafelek.innerText = mojaRola;
+
+      let nastepnaTura = mojaRola === "❤️" ? "💋" : "❤️";
+      turaGracza = nastepnaTura;
+      odswiezNapisTury();
+
+      // Wyślij ruch do bazy w tle
+      if (baza) {
+        baza.set({
+          plansza: planszawPamieci,
+          tura: nastepnaTura,
+          aktywna: czyGraAktywna
+        }).catch(err => console.error("Błąd wysyłania do Firebase:", err));
+      }
+      
+      sprawdzWynikGryBezZmiany();
+    }
+
     function sprawdzWynikGryBezZmiany() {
       let b = planszawPamieci;
       let ktosWygral = false;
@@ -126,39 +159,45 @@
       if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) { ktosWygral = true; zwyciezca = b[2]; }
 
       if (ktosWygral) {
-        document.getElementById("game-status").innerText = `Koniec! Wygrywa ${zwyciezca}! 🎉`;
+        const status = document.getElementById("game-status");
+        if (status) status.innerText = `Koniec! Wygrywa ${zwyciezca}! 🎉`;
+        
         if (czyGraAktywna) {
           czyGraAktywna = false;
-          baza.update({ aktywna: false });
+          if (baza) baza.update({ aktywna: false });
           setTimeout(() => { alert(`Wygrywa ${zwyciezca}! Twoja nagroda to nieskończona ilość przytulasów! 💋❤️`); }, 100);
         }
         return;
       }
 
       if (!b.includes("")) {
-        document.getElementById("game-status").innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
+        const status = document.getElementById("game-status");
+        if (status) status.innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
         czyGraAktywna = false;
         return;
       }
-
-      odswiezNapisTury();
     }
 
     function odswiezNapisTury() {
       if (!czyGraAktywna) return;
+      const status = document.getElementById("game-status");
+      if (!status) return;
+
       if (mojaRola === turaGracza) {
-        document.getElementById("game-status").innerText = `Twoja tura (${mojaRola})! Twój ruch! 🔥`;
+        status.innerText = `Twoja tura (${mojaRola})! Twój ruch! 🔥`;
       } else {
-        document.getElementById("game-status").innerText = `Oczekiwanie na ruch partnera (${turaGracza})... ⏳`;
+        status.innerText = `Oczekiwanie na ruch partnera (${turaGracza})... ⏳`;
       }
     }
 
     function wyczyscBaze() {
-      baza.set({
-        plansza: ["", "", "", "", "", "", "", "", ""],
-        tura: "❤️",
-        aktywna: true
-      });
+      if (baza) {
+        baza.set({
+          plansza: ["", "", "", "", "", "", "", "", ""],
+          tura: "❤️",
+          aktywna: true
+        });
+      }
     }
 
     // Latające serduszka
