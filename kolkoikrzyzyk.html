@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="kik.css">
   <title>Nasza Strefa Gier Multiplayer 🎮</title>
 
-  <!-- POPRAWIONE: Oficjalne i stabilne biblioteki Google Firebase -->
+  <!-- Stabilne biblioteki Google Firebase -->
   <script src="https://gstatic.com"></script>
   <script src="https://gstatic.com"></script>
 </head>
@@ -28,7 +28,7 @@
         <button id="btn-X" class="role-btn" onclick="wybierzRole('💋')">Graj jako 💋</button>
       </div>
 
-      <p id="game-status">Wybierz symbol powyżej, aby zacząć...</p>
+      <p id="game-status">Wybierz symbol powyżej, aby dołączyć do sesji...</p>
 
       <div class="game-board">
         <div class="cell" id="c0" onclick="klikniecieKafelka(0)"></div>
@@ -46,99 +46,67 @@
     </div>
   </div>
 
-<script>
-    // Konfiguracja Twojej bazy danych z Firebase
+  <script>
+    // Konfiguracja Twojego unikalnego połączenia z Firebase
     const firebaseConfig = {
-      databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/" 
+      databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/"
     };
-    
-    // Inicjalizacja Firebase w bezpiecznym bloku try-catch
-    let baza;
-    try {
-      firebase.initializeApp(firebaseConfig);
-      baza = firebase.database().ref("stan_gry");
-    } catch (e) {
-      console.error("Błąd połączenia z Firebase, uruchamiam tryb awaryjny:", e);
-    }
 
-    // Zmienne lokalne (Działają zawsze, niezależnie od internetu)
+    firebase.initializeApp(firebaseConfig);
+    
+    // Kluczowe związanie sesji: Obaj gracze lądują w tym samym pokoju internetowym
+    const baza = firebase.database().ref("nasz-pokoj");
+
     let mojaRola = ""; 
     let turaGracza = "❤️"; 
     let planszawPamieci = ["", "", "", "", "", "", "", "", ""];
     let czyGraAktywna = true;
 
-    // TA FUNKCJA DZIAŁA TERAZ W 100% LOKALNIE - Serwer jej nie zablokuje
     function wybierzRole(symbol) {
       mojaRola = symbol;
+      document.getElementById("btn-O").classList.remove("active");
+      document.getElementById("btn-X").classList.remove("active");
       
-      const btnO = document.getElementById("btn-O");
-      const btnX = document.getElementById("btn-X");
-      
-      if (btnO) btnO.classList.remove("active");
-      if (btnX) btnX.classList.remove("active");
-      
-      if (symbol === "❤️" && btnO) btnO.classList.add("active");
-      if (symbol === "💋" && btnX) btnX.classList.add("active");
+      if(symbol === "❤️") document.getElementById("btn-O").classList.add("active");
+      if(symbol === "💋") document.getElementById("btn-X").classList.add("active");
       
       odswiezNapisTury();
     }
 
-    // Bezpieczne nasłuchiwanie zmian w bazie na żywo
-    if (baza) {
-      baza.on("value", (snapshot) => {
-        try {
-          const dane = snapshot.val();
-          if (dane) {
-            planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
-            turaGracza = dane.tura || "❤️";
-            czyGraAktywna = dane.aktywna !== false;
-            
-            // Przerysowanie znaków na ekranie
-            for (let i = 0; i < 9; i++) {
-              const kafelek = document.getElementById(`c${i}`);
-              if (kafelek) kafelek.innerText = planszawPamieci[i];
-            }
-            
-            sprawdzWynikGryBezZmiany();
-          } else {
-            wyczyscBaze();
-          }
-        } catch (error) {
-          console.error("Błąd podczas odbierania ruchu:", error);
+    // NASŁUCHIWANIE SERWERA NA ŻYWO (Gdy partner kliknie, ta funkcja natychmiast przerysuje jego znak u Ciebie!)
+    baza.on("value", (snapshot) => {
+      const dane = snapshot.val();
+      if (dane) {
+        planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
+        turaGracza = dane.tura || "❤️";
+        czyGraAktywna = dane.aktywna !== false;
+
+        // Przerysowanie planszy na ekranie na podstawie tego, co jest w chmurze
+        for (let i = 0; i < 9; i++) {
+          document.getElementById(`c${i}`).innerText = planszawPamieci[i];
         }
-      });
-    }
+
+        sprawdzWynikGryBezZmiany();
+      } else {
+        wyczyscBaze();
+      }
+    });
 
     function klikniecieKafelka(indeks) {
-      if (!mojaRola) { 
-        alert("Najpierw kliknij u góry przycisk, kim chcesz grać! 🥰"); 
-        return; 
-      }
+      if (!mojaRola) { alert("Najpierw kliknij u góry przycisk, kim chcesz grać! 🥰"); return; }
       if (planszawPamieci[indeks] !== "" || !czyGraAktywna) return;
-      if (turaGracza !== mojaRola) { 
-        alert("Cierpliwości, teraz ruch drugiego gracza! 🌸"); 
-        return; 
-      }
+      if (turaGracza !== mojaRola) { alert("Cierpliwości, teraz ruch partnera! 🌸"); return; }
 
-      // Wykonaj ruch lokalnie na ekranie (Zadziała natychmiast)
+      // Zapisujemy ruch do pamięci lokalnej
       planszawPamieci[indeks] = mojaRola;
-      const kafelek = document.getElementById(`c${indeks}`);
-      if (kafelek) kafelek.innerText = mojaRola;
-
       let nastepnaTura = mojaRola === "❤️" ? "💋" : "❤️";
-      turaGracza = nastepnaTura;
-      odswiezNapisTury();
 
-      // Wyślij ruch do bazy w tle
-      if (baza) {
-        baza.set({
-          plansza: planszawPamieci,
-          tura: nastepnaTura,
-          aktywna: czyGraAktywna
-        }).catch(err => console.error("Błąd wysyłania do Firebase:", err));
-      }
-      
-      sprawdzWynikGryBezZmiany();
+      // WYSYŁANIE RUCHU DO INTERNETU: Ta komenda przesyła dane do telefonu dziewczyny
+      baza.set({
+        plansza: planszawPamieci,
+        tura: nastepnaTura,
+        aktywna: czyGraAktywna
+      });
     }
 
     function sprawdzWynikGryBezZmiany() {
@@ -146,58 +114,50 @@
       let ktosWygral = false;
       let zwyciezca = "";
 
-      // Poziomo
+      // Warunki wygranej
       if (b[0] !== "" && b[0] === b[1] && b[0] === b[2]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[3] !== "" && b[3] === b[4] && b[3] === b[5]) { ktosWygral = true; zwyciezca = b[3]; }
       if (b[6] !== "" && b[6] === b[7] && b[6] === b[8]) { ktosWygral = true; zwyciezca = b[6]; }
-      // Pionowo
       if (b[0] !== "" && b[0] === b[3] && b[0] === b[6]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[1] !== "" && b[1] === b[4] && b[1] === b[7]) { ktosWygral = true; zwyciezca = b[1]; }
       if (b[2] !== "" && b[2] === b[5] && b[2] === b[8]) { ktosWygral = true; zwyciezca = b[2]; }
-      // Skosy
       if (b[0] !== "" && b[0] === b[4] && b[0] === b[8]) { ktosWygral = true; zwyciezca = b[0]; }
       if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) { ktosWygral = true; zwyciezca = b[2]; }
 
       if (ktosWygral) {
-        const status = document.getElementById("game-status");
-        if (status) status.innerText = `Koniec! Wygrywa ${zwyciezca}! 🎉`;
-        
+        document.getElementById("game-status").innerText = `Koniec! Wygrywa ${zwyciezca}! 🎉`;
         if (czyGraAktywna) {
           czyGraAktywna = false;
-          if (baza) baza.update({ aktywna: false });
+          baza.update({ aktywna: false });
           setTimeout(() => { alert(`Wygrywa ${zwyciezca}! Twoja nagroda to nieskończona ilość przytulasów! 💋❤️`); }, 100);
         }
         return;
       }
 
       if (!b.includes("")) {
-        const status = document.getElementById("game-status");
-        if (status) status.innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
+        document.getElementById("game-status").innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
         czyGraAktywna = false;
         return;
       }
+
+      odswiezNapisTury();
     }
 
     function odswiezNapisTury() {
       if (!czyGraAktywna) return;
-      const status = document.getElementById("game-status");
-      if (!status) return;
-
       if (mojaRola === turaGracza) {
-        status.innerText = `Twoja tura (${mojaRola})! Twój ruch! 🔥`;
+        document.getElementById("game-status").innerText = `Twoja tura (${mojaRola})! Twój ruch! 🔥`;
       } else {
-        status.innerText = `Oczekiwanie na ruch partnera (${turaGracza})... ⏳`;
+        document.getElementById("game-status").innerText = `Oczekiwanie na ruch partnera (${turaGracza})... ⏳`;
       }
     }
 
     function wyczyscBaze() {
-      if (baza) {
-        baza.set({
-          plansza: ["", "", "", "", "", "", "", "", ""],
-          tura: "❤️",
-          aktywna: true
-        });
-      }
+      baza.set({
+        plansza: ["", "", "", "", "", "", "", "", ""],
+        tura: "❤️",
+        aktywna: true
+      });
     }
 
     // Latające serduszka
