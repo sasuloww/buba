@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel='stylesheet' href='kik.css'>
-
+  <link rel="stylesheet" href="kik.css">
   <title>Nasza Strefa Gier Multiplayer 🎮</title>
-  
-  <!-- Pobieranie oficjalnej biblioteki Google Firebase -->
+
+  <!-- POPRAWIONE: Oficjalne i stabilne biblioteki Google Firebase -->
   <script src="https://gstatic.com"></script>
   <script src="https://gstatic.com"></script>
 </head>
@@ -21,7 +20,8 @@
   <div class="main-container">
     <div class="game-box">
       <h2>Kółko i Krzyżyk na Żywo! 🕹️</h2>
-      
+
+      <!-- Panel wyboru gracza -->
       <div class="role-select-box">
         <p style="font-weight: bold; margin-bottom: 8px; color: #6a6a6a;">Kim dzisiaj grasz?</p>
         <button id="btn-O" class="role-btn" onclick="wybierzRole('❤️')">Graj jako ❤️</button>
@@ -29,7 +29,7 @@
       </div>
 
       <p id="game-status">Wybierz symbol powyżej, aby zacząć...</p>
-      
+
       <div class="game-board">
         <div class="cell" id="c0" onclick="klikniecieKafelka(0)"></div>
         <div class="cell" id="c1" onclick="klikniecieKafelka(1)"></div>
@@ -47,14 +47,16 @@
   </div>
 
   <script>
-    // Twoja prawidłowa konfiguracja bazy danych z Firebase
+    // POPRAWIONE: Twój czysty i jedyny adres URL bazy danych z Firebase
     const firebaseConfig = {
-      databaseURL: "https://firebasedatabase.app" 
+      databaseURL: "https://buba-fbe7a-default-rtdb.europe-west1.firebasedatabase.app/" 
     };
-    
+
+    // Inicjalizacja połączenia z Google Cloud
     firebase.initializeApp(firebaseConfig);
     const baza = firebase.database().ref("stan_gry");
 
+    // Zmienne lokalne urządzenia
     let mojaRola = ""; 
     let turaGracza = "❤️"; 
     let planszawPamieci = ["", "", "", "", "", "", "", "", ""];
@@ -78,11 +80,12 @@
         planszawPamieci = dane.plansza || ["", "", "", "", "", "", "", "", ""];
         turaGracza = dane.tura || "❤️";
         czyGraAktywna = dane.aktywna !== false;
-        
+
+        // Przerysowanie znaków na ekranie
         for (let i = 0; i < 9; i++) {
           document.getElementById(`c${i}`).innerText = planszawPamieci[i];
         }
-        
+
         sprawdzWynikGryBezZmiany();
       } else {
         wyczyscBaze();
@@ -104,7 +107,7 @@
       });
     }
 
-    // Bezpieczne, pancerne sprawdzanie wyników bez pętli i błędów tablicy
+    // Bezpieczne, pancerne sprawdzanie wyników
     function sprawdzWynikGryBezZmiany() {
       let b = planszawPamieci;
       let ktosWygral = false;
