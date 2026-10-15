@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel='stylesheet' href='kik.css'>
+
+  <title>Nasza Strefa Gier 🎮</title>
+  </head>
+<body>
+
+  <!-- Pasek górny z przyciskiem powrotu -->
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">◀ Wróć</a>
+    <span>Strefa Gier</span> ❤️
+  </div>
+
+  <div class="main-container">
+    <!-- Panel z grą -->
+    <div class="game-box">
+      <h2>Kółko i Krzyżyk wersja inna xD🎮</h2>
+      <p id="game-status">Tura: ❤️</p>
+      
+      <div class="game-board">
+        <div class="cell" onclick="makeMove(this, 0)"></div>
+        <div class="cell" onclick="makeMove(this, 1)"></div>
+        <div class="cell" onclick="makeMove(this, 2)"></div>
+        <div class="cell" onclick="makeMove(this, 3)"></div>
+        <div class="cell" onclick="makeMove(this, 4)"></div>
+        <div class="cell" onclick="makeMove(this, 5)"></div>
+        <div class="cell" onclick="makeMove(this, 6)"></div>
+        <div class="cell" onclick="makeMove(this, 7)"></div>
+        <div class="cell" onclick="makeMove(this, 8)"></div>
+      </div>
+
+      <button class="reset-game-btn" onclick="resetGame()">Zagraj od nowa 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let currentPlayer = "❤️";
+    let gameActive = true;
+
+    function makeMove(cell, index) {
+      // Jeśli pole jest już zajęte lub gra się skończyła – zablokuj
+      if (board[index] !== "" || !gameActive) return;
+
+      // Zapisz ruch i wstaw emotkę na planszę
+      board[index] = currentPlayer;
+      cell.innerText = currentPlayer;
+      
+      // Sprawdź wygraną/remis
+      checkGameResult();
+
+      // WYMUSZONA ZMIANA GRACZA (Robiona natychmiast)
+      if (gameActive) {
+        if (currentPlayer === "❤️") {
+          currentPlayer = "💋";
+        } else {
+          currentPlayer = "❤️";
+        }
+        document.getElementById("game-status").innerText = "Tura: " + currentPlayer;
+      }
+    }
+
+    function checkGameResult() {
+      let b = board; // Skrót dla łatwiejszego czytania
+      let roundWon = false;
+
+      // 1. Sprawdzanie wierszy (poziomo)
+      if (b[0] !== "" && b[0] === b[1] && b[0] === b[2]) roundWon = true;
+      if (b[3] !== "" && b[3] === b[4] && b[3] === b[5]) roundWon = true;
+      if (b[6] !== "" && b[6] === b[7] && b[6] === b[8]) roundWon = true;
+
+      // 2. Sprawdzanie kolumn (pionowo)
+      if (b[0] !== "" && b[0] === b[3] && b[0] === b[6]) roundWon = true;
+      if (b[1] !== "" && b[1] === b[4] && b[1] === b[7]) roundWon = true;
+      if (b[2] !== "" && b[2] === b[5] && b[2] === b[8]) roundWon = true;
+
+      // 3. Sprawdzanie skosów
+      if (b[0] !== "" && b[0] === b[4] && b[0] === b[8]) roundWon = true;
+      if (b[2] !== "" && b[2] === b[4] && b[2] === b[6]) roundWon = true;
+
+      if (roundWon) {
+        document.getElementById("game-status").innerText = "Wygrywa " + currentPlayer + "! 🎉👑";
+        gameActive = false;
+        setTimeout(function() {
+          alert("Wygrywa " + currentPlayer + "! Twoja nagroda u mnie to nieskończona ilość buziaków i przytulasów! 💋❤️");
+        }, 100);
+        return;
+      }
+
+      // Sprawdzanie remisu (czy plansza jest pełna)
+      if (!board.includes("")) {
+        document.getElementById("game-status").innerText = "Remis! Oboje wygrywacie miłość! 👩‍❤️‍👨";
+        gameActive = false;
+        return;
+      }
+    }
+
+    function resetGame() {
+      board = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "❤️";
+      gameActive = true;
+      document.getElementById("game-status").innerText = "Tura: ❤️";
+      const cells = document.querySelectorAll(".cell");
+      cells.forEach(function(cell) {
+        cell.innerText = "";
+      });
+    }
+
+    // Generowanie serduszek w tle
+    function createHeart() {
+      const heart = document.createElement('div');
+      heart.classList.add('heart-bg');
+      heart.innerText = '❤️';
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.animationDuration = Math.random() * 4 + 6 + 's';
+      heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+      document.body.appendChild(heart);
+      setTimeout(function() { heart.remove(); }, 10000);
+    }
+    setInterval(createHeart, 600);
+  </script>
+
+</body>
+</html>

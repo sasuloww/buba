@@ -1,0 +1,542 @@
+/* ==========================================
+   1. RESET I STYLE OGÓLNE STRONY
+   ========================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%);
+  color: #4a4a4a;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ==========================================
+   2. EKRAN BLOKADY (KOD PIN)
+   ========================================== */
+#welcome-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ff4b6e 0%, #ffd1dc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+.welcome-box {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  max-width: 360px;
+  width: 90%;
+}
+.welcome-box h2 { color: #ff4b6e; margin-bottom: 5px; font-size: 1.6rem; }
+.welcome-box p { color: #6a6a6a; margin-bottom: 15px; font-size: 0.95rem; }
+
+.pin-display {
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 10px;
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #ff4b6e;
+  border: 2px solid #ffd1dc;
+}
+.pin-keyboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 260px;
+  margin: 0 auto;
+}
+.pin-btn {
+  background: #fff0f3;
+  color: #ff4b6e;
+  border: 1px solid #ffd1dc;
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pin-btn:hover { background: #ff4b6e; color: white; transform: scale(1.05); }
+.pin-btn.clear { background: #f5f5f5; color: #6a6a6a; border-color: #ddd; }
+.pin-btn.enter { background: #4caf50; color: white; border-color: #4caf50; }
+.pin-btn.enter:hover { background: #43a047; }
+
+/* ==========================================
+   3. PASEK NA SAMEJ GÓRZE (TOP BAR) ORAZ MENU
+   ========================================== */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: rgba(255, 75, 110, 0.95);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  padding: 0 20px;
+}
+.top-bar-text {
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.top-bar-text span {
+  margin: 0 10px;
+}
+
+.dropdown-menu {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-btn {
+  background: white;
+  color: #ff4b6e;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+.dropdown-btn:hover {
+  transform: scale(1.05);
+  background: #fff0f3;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 5px;
+  background-color: white;
+  min-width: 180px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(255, 75, 110, 0.15);
+  overflow: hidden;
+  border: 1px solid #ffd1dc;
+  z-index: 1001;
+}
+.dropdown-content a {
+  color: #4a4a4a;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.2s;
+}
+.dropdown-content a:hover {
+  background-color: #fff0f3;
+  color: #ff4b6e;
+}
+.dropdown-menu:hover .dropdown-content {
+  display: block;
+}
+
+/* ==========================================
+   4. GŁÓWNY UKŁAD STRONY
+   ========================================== */
+.main-container {
+  margin-top: 90px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.love-header {
+  margin-bottom: 30px;
+  animation: heartbeat 1.5s infinite alternate;
+}
+.love-header h1 {
+  color: #ff4b6e;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.love-header p {
+  font-size: 1.2rem;
+  color: #6a6a6a;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   5. ODTWARZACZ MUZYKI / TELEDYSKU
+   ========================================== */
+.music-box {
+  position: relative !important;
+  max-width: 500px;     
+  width: 95%;           
+  margin: 20px auto !important; 
+  aspect-ratio: 16 / 9; 
+  border-radius: 20px;  
+  overflow: hidden;     
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: #000;     
+  outline: none;
+}
+.music-box video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    
+  z-index: 1;
+  opacity: 1;           
+  transition: opacity 0.3s ease; 
+}
+.music-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8); 
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.4); 
+  transition: opacity 0.3s ease; 
+}
+.music-box:hover .music-content,
+.music-box:focus .music-content,
+.music-box:active .music-content {
+  opacity: 1; 
+}
+.music-box:hover video,
+.music-box:focus video,
+.music-box:active video {
+  opacity: 0.5; 
+}
+.music-content p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+.song-title {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin-bottom: 15px;
+}
+.music-content button {
+  background: #ff4b6e;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 75, 110, 0.4);
+  transition: transform 0.2s;
+}
+.music-content button:hover {
+  transform: scale(1.05);
+}
+
+/* ==========================================
+   6. KAFELEK Z TEKSTEM DNIA
+   ========================================== */
+.tekstt {
+  position: relative !important;   
+  max-width: 500px;
+  width: 95%;
+  margin: 15px auto 25px auto !important; 
+  padding: 20px !important;        
+  background: rgba(255, 75, 110, 0.95);
+  border-radius: 15px;
+  color: white;
+  text-align: center;
+  text-shadow: 
+    -1px -1px 0 rgb(0, 0, 0),
+     1px -1px 0 rgb(0, 0, 0),
+    -1px  1px 0 rgb(0, 0, 0),
+     1px  1px 0 rgb(0, 0, 0);
+}
+.tekstt h3 {
+  color: white !important;
+  text-shadow: none !important; 
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+/* ==========================================
+   7. SLIDER ZE ZDJĘCIAMI ORAZ LIGHTBOX
+   ========================================== */
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(255, 75, 110, 0.25);
+  background: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+.carousel-wrapper:hover {
+  transform: scale(1.03); 
+  box-shadow: 0 15px 35px rgba(255, 75, 110, 0.4); 
+}
+.carousel {
+  display: flex;
+  overflow: hidden;
+  scroll-behavior: smooth;
+}
+.carousel-item {
+  width: 100%;
+  flex-shrink: 0;
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+.carousel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease; 
+}
+
+#lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; 
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; 
+}
+#lightbox-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+#lightbox-img {
+  max-width: 90%;
+  max-height: 85vh;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+#lightbox-overlay.active #lightbox-img {
+  transform: scale(1); 
+}
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+.lightbox-close:hover {
+  color: #ff4b6e;
+}
+
+.image-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  color: white;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 75, 110, 0.7);
+  color: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+  z-index: 10;
+}
+.arrow-btn:hover { background: rgba(255, 75, 110, 1); }
+.left { left: 15px; }
+.right { right: 15px; }
+
+/* ==========================================
+   8. SEKCE DOLNE (LIST, LICZNIK, SERCA)
+   ========================================== */
+.love-letter {
+  background: white;
+  padding: 30px;
+  margin-top: 20px;
+  border-radius: 20px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  margin-bottom: 50px;
+}
+.love-letter h2 {
+  color: rgb(255, 74, 110);
+  margin-bottom: 15px;
+}
+.love-letter ul {
+  list-style-type: none;
+  text-align: left;
+  display: inline-block;
+}
+.love-letter li {
+  font-size: 1.1rem;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+}
+.love-letter li::before {
+  content: "💖";
+  margin-right: 15px;
+}
+
+@keyframes heartbeat {
+  from { transform: scale(1); }
+  to { transform: scale(1.03); }
+}
+
+.heart-bg {
+  position: fixed;
+  top: -10vh;
+  font-size: 24px;
+  color: #ff0000;
+  user-select: none;
+  pointer-events: none;
+  animation: float 8s linear infinite;
+  z-index: -1;
+}
+@keyframes float {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+.container {
+  text-align: center;
+  background: rgb(253, 253, 253);
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+.container h1 {
+font-size: 30px;
+margin-bottom: 20px;
+color: #ffffff;
+text-shadow:
+-1px -1px 0 rgb(255, 74, 110),
+1px -1px 0 rgb(255, 74, 110),
+-1px  1px 0 rgb(255, 74, 110),
+1px  1px 0 rgb(255, 74, 110);
+}
+#timer {
+font-size: 2.5rem;
+font-weight: bold;
+font-variant-numeric: tabular-nums;
+color: rgb(255, 74, 110);
+}
+/* ==========================================
+9. INTELEKTUALNE MEDIA QUERIES (PC VS TELEFON)
+========================================== */
+/* --- WYGLĄD NA KOMPUTER (EKRAN PC) --- */
+@media (min-width: 992px) {
+  .top-bar {
+    justify-content: flex-start; 
+  }
+  .dropdown-menu {
+    position: absolute; 
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .top-bar-text {
+    width: 100%; 
+    text-align: center;
+  }
+
+  /* PRZYWRÓCENIE UKŁADU Z BOKU DLA WIDEO I KAFELKA TEKSTU */
+  .music-box {
+    position: absolute !important;
+    align-self: flex-start !important; 
+    max-width: 500px !important;
+    margin-top: 100px !important;
+    margin-left: 40px !important; 
+  }
+  .tekstt {
+    position: absolute !important;  
+    align-self: flex-start !important;  
+    max-width: 500px !important; 
+    padding-top: 30px !important;
+    margin-top: 450px !important; 
+    margin-left: 40px !important; 
+    text-align: center;
+  }
+} /* <--- TA KLAMRA ZAMYKA SEKCJĘ PC! Upewnij się, że ją masz */
+
+/* --- WYGLĄD NA TELEFON (MNIEJSZE EKRANY) --- */
+@media (max-width: 991px) {
+  .top-bar {
+    flex-direction: column; 
+    height: 75px; 
+    justify-content: space-evenly;
+    padding: 5px 10px;
+  }
+  .top-bar-text {
+    font-size: 0.9rem; 
+  }
+  .dropdown-menu:active .dropdown-content,
+  .dropdown-menu:focus-within .dropdown-content {
+    display: block;
+  }
+  .music-box {
+    max-width: 320px;
+  }
+  .tekstt {
+    max-width: 320px;
+  }
+} /* <--- TA KLAMRA ZAMYKA SEKCJĘ TELEFONU! */
+
